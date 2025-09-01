@@ -1,5 +1,6 @@
 package com.reddit.reddit_clone.security;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ public class JwtProvider {
 
     private final JwtEncoder jwtEncoder;
 
+    @Getter
     @Value("${jwt.expiration.time}")
     private Long jwtExpirationInMillis;
 
@@ -38,6 +40,4 @@ public class JwtProvider {
         return  this.jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
 
     }
-
-
 }

@@ -1,10 +1,9 @@
 package com.reddit.reddit_clone.mapper;
 
+import com.github.marlonlom.utilities.timeago.TimeAgo;
 import com.reddit.reddit_clone.dto.PostRequest;
 import com.reddit.reddit_clone.dto.PostResponse;
-import com.reddit.reddit_clone.model.Post;
-import com.reddit.reddit_clone.model.Subreddit;
-import com.reddit.reddit_clone.model.User;
+import com.reddit.reddit_clone.model.*;
 import com.reddit.reddit_clone.repository.CommentRepository;
 import com.reddit.reddit_clone.repository.VoteRepository;
 import com.reddit.reddit_clone.service.AuthService;
@@ -14,38 +13,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
-@Mapper(componentModel = "spring")
-public interface PostMapper {
+import static com.reddit.reddit_clone.model.VoteType.DOWNVOTE;
+import static com.reddit.reddit_clone.model.VoteType.UPVOTE;
 
-//    @Autowired
-//    private CommentRepository commentRepository;
-//    @Autowired
-//    private VoteRepository voteRepository;
-//    @Autowired
-//    private AuthService authService;
+@Mapper(componentModel = "spring")
+public abstract class PostMapper {
+
+    @Autowired
+    private CommentRepository commentRepository;
+    @Autowired
+    private VoteRepository voteRepository;
+    @Autowired
+    private AuthService authService;
 
 
     @Mapping(target = "createdDate", expression = "java(java.time.Instant.now())")
     @Mapping(target = "description", source = "postRequest.description")
-    Post map(PostRequest postRequest, Subreddit subreddit, User user);
+    @Mapping(target = "subreddit", source = "subreddit")
+    @Mapping(target = "voteCount", constant = "0")
+    @Mapping(target = "user", source = "user")
+    public abstract Post map(PostRequest postRequest, Subreddit subreddit, User user);
 
     @Mapping(target = "id", source = "postId")
     @Mapping(target = "subredditName", source = "subreddit.name")
     @Mapping(target = "userName", source = "user.userName")
-    PostResponse mapToDto(Post post);
-//    @Mapping(target = "commentCount", expression = "java(commentCount(post))")
-//    @Mapping(target = "duration", expression = "java(getDuration(post))")
+    @Mapping(target = "commentCount", expression = "java(commentCount(post))")
+    @Mapping(target = "duration", expression = "java(getDuration(post))")
 //    @Mapping(target = "upVote", expression = "java(isPostUpVoted(post))")
 //    @Mapping(target = "downVote", expression = "java(isPostDownVoted(post))")
+    public abstract PostResponse mapToDto(Post post);
 
+    Integer commentCount(Post post) {
+        return commentRepository.findByPost(post).size();
+    }
 
-//    Integer commentCount(Post post) {
-//        return commentRepository.findByPost(post).size();
-//    }
-//
-//    String getDuration(Post post) {
-//        return TimeAgo.using(post.getCreatedDate().toEpochMilli());
-//    }
+    String getDuration(Post post) {
+        return TimeAgo.using(post.getCreatedDate().toEpochMilli());
+    }
 //
 //    boolean isPostUpVoted(Post post) {
 //        return checkVoteType(post, UPVOTE);
@@ -65,5 +69,4 @@ public interface PostMapper {
 //        }
 //        return false;
 //    }
-
 }
