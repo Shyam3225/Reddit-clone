@@ -35,18 +35,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
 
     @Value("${jwt.public.key}")
     RSAPublicKey publicKey;
 
     @Value("${jwt.private.key}")
     RSAPrivateKey privateKey;
-
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -57,10 +54,11 @@ public class SecurityConfig {
     }
 
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder.userDetailsService(userDetailsService)
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService)
                 .passwordEncoder(new BCryptPasswordEncoder());
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -77,13 +75,16 @@ public class SecurityConfig {
                                 "/configuration/security",
                                 "/swagger-ui.html",
                                 "/webjars/**").permitAll()
-                        // All other requests need authentication
+                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                // Only apply JWT filter to authenticated endpoints
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()));
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+                );
 
         return http.build();
     }
@@ -96,9 +97,10 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // allow all origins (adjust in production)
+        configuration.setAllowedOriginPatterns(List.of("*")); // allow all origins for dev
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -107,18 +109,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtEncoder jwtEncoder()
-    {
+    JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey.Builder(this.publicKey).privateKey(this.privateKey).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
     }
 
     @Bean
-    JwtDecoder jwtDecoder()
-    {
+    JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
     }
 }
-
-
