@@ -1,68 +1,80 @@
-Reddit-clone (Spring Boot Backend)
+# Reddit-clone (Spring Boot Backend)
 
-A backend for a Reddit-style application with JWT authentication (access + refresh tokens), role-based authorization, and CRUD APIs for posts, comments, votes, and subreddits. Designed as a clean, testable Spring Boot service that pairs with an Angular frontend.
+A backend for a Reddit-style web application built with **Spring Boot**, featuring JWT authentication (access and refresh tokens), role-based authorization, and CRUD operations for posts, comments, votes, and subreddits.  
+Designed as a clean, modular, and testable REST API that pairs with an Angular frontend.
 
-💡 This repository is the backend. The Angular client lives in a separate repo.
-👉 Update with link: https://github.com/<your-username>/<angular-repo>
+> This repository hosts the backend service.  
+> The Angular frontend lives in a separate repository: [Reddit Clone Frontend](https://github.com/Shyam3225/Reddit-clone-frontend)
 
-✨ Features
+---
 
-Auth: Sign up, email verification (optional), login, refresh token, logout/ revoke
+## 🚀 Features
 
-Security: Spring Security + JWT (access + refresh), password hashing
+- **Authentication & Authorization**
+  - Sign up, login, refresh token, and logout functionality
+  - Spring Security with JWT (access + refresh)
+  - Password encryption with BCrypt
 
-Posts & Comments: Create, read, update (optional), delete, list by subreddit/ user
+- **Posts & Comments**
+  - Create, read, update (optional), delete posts and comments
+  - List posts by subreddit or by user
 
-Votes: Upvote/Downvote with idempotency
+- **Votes**
+  - Upvote/Downvote posts with idempotency to prevent duplicate actions
 
-Subreddits: Create & browse communities
+- **Subreddits**
+  - Create and browse multiple subreddits
 
-User feed: Timeline by subreddit/author (basic)
+- **User Feed**
+  - Timeline and activity feed by subreddit or followed users
 
-API Docs: Swagger/OpenAPI UI
+- **API Documentation**
+  - Swagger UI and OpenAPI integration for easy API testing
 
-Prod-ready basics: Global exception handling, DTO mapping, validation, logging
+---
 
-🏗 Tech Stack
+## 🛠 Tech Stack
 
-Java 17 👉 Update if different
+- **Backend:** Java 17, Spring Boot, Spring Security, Spring Data JPA  
+- **Database:** PostgreSQL *(can be configured to MySQL)*  
+- **Authentication:** JWT (access + refresh tokens)  
+- **Build Tool:** Maven  
+- **Frontend:** Angular 20 *(separate repo)*  
+- **Testing:** JUnit, Mockito  
+- **Documentation:** Swagger / OpenAPI  
 
-Spring Boot 3.x, Spring Web, Spring Data JPA, Spring Security, Validation
+---
 
-JWT (Access + Refresh)
+## ⚙️ Project Structure
 
-Database: PostgreSQL 👉 Update if you used MySQL
+## 📁 Project Structure
 
-Build: Maven
+```bash
+Reddit-clone/
+│
+├── src/
+│   ├── main/java/com/example/redditclone/
+│   │   ├── config/          # Security, Swagger, CORS configs
+│   │   ├── controller/      # Auth, Post, Comment, Subreddit, Vote Controllers
+│   │   ├── dto/             # Request and Response DTOs
+│   │   ├── entity/          # JPA Entities (User, Post, Comment, etc.)
+│   │   ├── exception/       # Custom exception handling
+│   │   ├── repository/      # JPA Repositories
+│   │   ├── security/        # JWT filters, providers, utils
+│   │   └── service/         # Business logic services
+│   └── main/resources/
+│       ├── application.yml  # Configuration
+│       └── schema.sql       # (Optional) DB schema
+│
+├── pom.xml
+└── README.md
 
-Docs: springdoc-openapi / Swagger UI
 
-Testing: JUnit, Mockito 👉 Update if not yet added
+## ⚙️ Configuration
 
-📁 Project Structure
-.
-├─ src
-│  ├─ main
-│  │  ├─ java/com/yourorg/redditclone
-│  │  │  ├─ config/         # Security, Swagger, CORS
-│  │  │  ├─ controller/     # AuthController, PostController, CommentController, ...
-│  │  │  ├─ dto/            # Request/Response DTOs
-│  │  │  ├─ entity/         # User, Post, Comment, Subreddit, Vote, RefreshToken
-│  │  │  ├─ exception/      # Custom exceptions + handlers
-│  │  │  ├─ mapper/         # Map entities <-> DTOs
-│  │  │  ├─ repository/     # Spring Data JPA repos
-│  │  │  ├─ security/       # JWT filters, services, utils
-│  │  │  └─ service/        # Business logic
-│  │  └─ resources/
-│  │     ├─ application.yml
-│  │     └─ schema.sql / data.sql (optional)
-├─ pom.xml
-└─ README.md
+Update your database credentials and JWT settings in `application.yml`:
 
-⚙️ Configuration
-
-Create src/main/resources/application.yml:
-
+```yaml
 server:
   port: 8080
 
@@ -73,31 +85,24 @@ spring:
     password: reddit_pass
   jpa:
     hibernate:
-      ddl-auto: update   # 👉 For dev only. Use migrations in prod.
+      ddl-auto: update
     show-sql: true
 
 jwt:
-  issuer: reddit-clone
-  access-token-exp-min: 15
-  refresh-token-exp-days: 7
-  secret: ${JWT_SECRET:change-me}
+  secret: your-secret-key
+  access-token-expiration: 15m
+  refresh-token-expiration: 7d
+🐳 Running the Application
+1️⃣ Start PostgreSQL (Docker)
+Create a docker-compose.yml:
 
-cors:
-  allowed-origins:
-    - http://localhost:4200   # Angular dev server
-
-
-👉 If you used MySQL, replace the datasource URL/driver accordingly.
-
-🐳 Quick Start (Local + Docker)
-1) Start Database (PostgreSQL)
-
-Create a docker-compose.yml at project root:
-
+yaml
+Copy code
 version: "3.8"
 services:
   postgres:
     image: postgres:16
+    container_name: reddit_db
     environment:
       POSTGRES_DB: reddit
       POSTGRES_USER: reddit_user
@@ -106,123 +111,67 @@ services:
       - "5432:5432"
     volumes:
       - reddit_data:/var/lib/postgresql/data
+
 volumes:
   reddit_data:
+Start the container:
 
+bash
+Copy code
 docker compose up -d
-
-2) Run the Backend
+2️⃣ Run the Backend
+bash
+Copy code
 ./mvnw spring-boot:run
-
-
-Backend runs at: http://localhost:8080
-
+3️⃣ Access API Docs
 Swagger UI: http://localhost:8080/swagger-ui.html
-OpenAPI JSON: http://localhost:8080/v3/api-docs
 
-🔐 Authentication Flow (JWT + Refresh)
+🔐 Authentication Flow
+Register: /api/auth/signup
 
-Register → /api/auth/signup
+Login: /api/auth/login → returns accessToken + refreshToken
 
-Login → /api/auth/login → returns accessToken (short-lived) + refreshToken (longer-lived)
+Access protected endpoints: use Authorization: Bearer <accessToken>
 
-Use Authorization: Bearer <accessToken> for protected endpoints
+Refresh token: /api/auth/refresh
 
-Refresh → /api/auth/refresh with refresh token to get a new access token
+Logout: /api/auth/logout
 
-Logout → /api/auth/logout (optional revoke refresh token)
+📡 Key API Endpoints
+Endpoint	Method	Description
+/api/auth/signup	POST	Register a new user
+/api/auth/login	POST	Login with username & password
+/api/posts	GET/POST	Get or create posts
+/api/comments	GET/POST	Manage comments
+/api/votes	POST	Upvote or downvote a post
+/api/subreddits	GET/POST	Manage subreddits
 
-🧪 Example Requests (cURL)
+🧪 Testing
+Run all tests:
 
-Sign Up
-
-curl -X POST http://localhost:8080/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","email":"alice@example.com","password":"Passw0rd!"}'
-
-
-Login
-
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","password":"Passw0rd!"}'
-# => { "accessToken": "...", "refreshToken": "..." }
-
-
-Create Post
-
-curl -X POST http://localhost:8080/api/posts \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Hello","content":"First post!","subreddit":"general"}'
-
-
-Comment on Post
-
-curl -X POST http://localhost:8080/api/comments \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"postId":1,"content":"Nice post!"}'
-
-
-Vote
-
-curl -X POST http://localhost:8080/api/votes \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"postId":1,"type":"UPVOTE"}'
-
-🧭 API Endpoints (Overview)
-
-POST /api/auth/signup – register
-
-POST /api/auth/login – login (JWT access + refresh)
-
-POST /api/auth/refresh – refresh access token
-
-POST /api/auth/logout – revoke refresh (if implemented)
-
-GET /api/subreddits • POST /api/subreddits
-
-GET /api/posts • GET /api/posts/{id} • POST /api/posts
-
-GET /api/posts/by-subreddit/{name} • GET /api/posts/by-user/{username}
-
-POST /api/comments • GET /api/comments/by-post/{postId}
-
-POST /api/votes (UPVOTE / DOWNVOTE)
-
-👉 Exact paths may differ—adjust to your controllers.
-
-🧰 Development
-
-Run tests
-
+bash
+Copy code
 ./mvnw test
+🌐 Frontend Integration
+Frontend built with Angular 20
 
+Development server: http://localhost:4200
 
-Build jar
+CORS enabled for http://localhost:4200 in backend
 
-./mvnw clean package
+Angular repo link: Reddit Clone Frontend
 
+🚀 Future Enhancements
+Image upload support
 
-Run jar
+Notification service
 
-java -jar target/reddit-clone-*.jar
+Search & filtering
 
-🔄 Frontend (Angular)
+Caching & pagination
 
-Angular 20 client with authentication (JWT), posting, commenting, voting
+Dockerized full-stack deployment
 
-Dev server: http://localhost:4200
-
-Configure CORS in backend (application.yml) to allow http://localhost:4200
-
-📄 License
-
-MIT 👉 Update if you prefer a different license.
-
-🙌 Credits
-
-Built by Shyam Kumar Kurapati
- using Spring Boot and Angular.
+👨‍💻 Author
+Shyam Kumar Kurapati
+GitHub • LinkedIn
